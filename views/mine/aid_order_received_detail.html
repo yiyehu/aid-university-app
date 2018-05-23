@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>接单详情页面</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link rel="stylesheet" type="text/css" href="../../css/mui.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/list-to-detail.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/iconfont.css" />
+		<script type="text/javascript" src="../../js/jquery.min.js"></script>
+		<script src="../../js/mui.min.js" charset="UTF-8"></script>
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../libs/vue.min.js" type="text/javascript" charset="utf-8"></script>
+		<style>
+			.mui-progressbar-green span {
+				background-color: #4cd964;
+			}
+			
+			.mui-progressbar-yellow span {
+				background-color: #f0ad4e;
+			}
+			
+			.mui-progressbar-grey span {
+				background-color: grey;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<div class="mui-content">
+			<!--顶部banner图 开始-->
+			<div id="kr-article-banner" class="kr-article-banner">
+				<div id="kr-article-cover" class="kr-article-cover">
+					<img src="../../images/3.jpg">
+				</div>
+				<h2 id="kr-article-title" class="kr-article-title">{{item.goodsName}}</h2>
+			</div>
+			<!--顶部banner图 结束-->
+			<div class="mui-card" style="margin: 0 auto;">
+				<p id="progressbar" :class="'mui-progressbar '+(item.status==0?'mui-progressbar-green':item.status==1?'mui-progressbar-yellow':item.status==2?'mui-progressbar-gery':'mui-progressbar-grey')" style="height:2vw;" data-progress="20"><span></span></p>
+				<div class="mui-card-header" style="height:20vw">
+					<div style="color: #333;" class="mui-media-body">
+						<span style="color: #69B452;" :class="categoryIcon"></span> {{item.title}}
+						<span style="font-size:3px;" v-bind:class="'mui-badge '+(item.paymentMethod==0? 'mui-badge-green':'mui-badge-blue')" v-text="item.paymentMethod==0?'现金付款':'网上支付'"></span>
+						<p>发表于 {{item.createTime}}</p>
+					</div>
+					<span v-if="item.status!=1" v-bind:class="'mui-badge '+(item.status==0?'mui-badge-green':item.status==1?'mui-badge-yellow':item.status==2?'mui-badge-blue':'mui-badge-grey')" v-html="item.status==0?'待接单':item.status==1?'进行中':item.status==2?'已完成':'已评价'"></span>
+					<a v-if="item.status==1" class="mui-badge mui-badge-yellow" onclick="vm.openTheGuidenceWindow()">进行中</a>
+				</div>
+				<div class="mui-card-header mui-card-media">
+					<img v-bind:src="baseURL+creator.img" />
+					<div class="mui-media-body">
+						{{creator.username}}:我需要帮助
+						<p>电话：{{creator.mobile}}</p>
+					</div>
+					<div>
+						<p>其他联系方式：{{item.creatorContact}}</p>
+					</div>
+				</div>
+				<div class="mui-card-content">
+
+					<div class="mui-card-header">
+						<div><span class="iconfont icon-dizhi"></span>&nbsp;&nbsp;<span style="color:dodgerblue;">{{item.orderAddress}}</span> </div>
+					</div>
+					<div class="mui-card-header">
+						<div class="mui-media-body">
+							<div style="color: #333;">截止日期：{{item.deadline}}</div>
+							<div style="color: #333;" v-html="item.receivedInfo"></div>
+						</div>
+					</div>
+					<div class="mui-card-content-inner">
+						<div class="mui-media-body">
+							<p style="color: #333;" v-html="item.description"></p>
+						</div>
+					</div>
+				</div>
+				<!--文章详细内容-->
+			</div>
+		</div>
+		<script src="../../js/jquery.min.js" charset="UTF-8"></script>
+		<script type="text/javascript">
+			mui.init();
+
+			var vm = new Vue({
+				el: '.mui-content',
+				data: {
+					item: {},
+					creator: {},
+					receiver: {},
+					categoryIcon: ''
+				},
+				methods: {
+					queryItemInfo: function(id) {
+						mui.getJSON(baseURL + "app/aidorder/" + id, {
+							token: commonUtils.getToken()
+						}, function(r) {
+							if(r.code == 0) {
+								vm.item = r.aidOrder;
+								vm.creator = r.creator;
+								vm.receiver = r.receiver;
+								vm.changeProgressbarByStatus();
+								vm.getCategorysIcon(vm.item.categoryId);
+							} else {
+
+							}
+						});
+					},
+					resetData: function() {
+						vm.item = {};
+					},
+					changeProgressbarByStatus: function() {
+						var prog = (vm.item.status + 1) * 33.3;
+						mui('#progressbar').progressbar().setProgress(prog);
+					},
+					getCategorysIcon: function(categoryId) {
+						mui.getJSON(baseURL + "app/category/info/" + categoryId, function(r) {
+							if(r.code == 0) {
+								vm.categoryIcon = r.category.icon;
+							}
+						});
+					},openTheGuidenceWindow:function(){
+						openTheGuidenceWindow(vm.item);
+					}
+				}
+			});
+
+			//监听自定义事件，获取新闻详情
+			document.addEventListener('aid_order_received_detail', function(event) {
+				var guid = event.detail.guid;
+				if(!guid) {
+					return;
+				}
+				vm.item = event.detail.item;
+				vm.changeProgressbarByStatus();
+				vm.queryItemInfo(guid);
+			});
+			//重写返回逻辑
+			mui.back = function() {
+				plus.webview.currentWebview().hide("auto", 300);
+			}
+			//窗口隐藏时，重置页面数据
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				self.addEventListener("hide", function(e) {
+					window.scrollTo(0, 0);
+					vm.resetData();
+				}, false);
+			})
+
+			/**
+			 * 打开订单地图引导的页面
+			 */
+			function openTheGuidenceWindow(item) {
+				mui.openWindow({
+					url: 'http://yiyehu.tech/aid_order_received_guidence.html',
+					id: 'aid_order_received_guidence.html',
+					styles: {
+						top: '0px', //新页面顶部位置
+						bottom: '0px', //新页面底部位置
+					},
+					createNew: true, //是否重复创建同样id的webview，默认为false:不重复创建，直接显示
+					extras:{
+						item:item
+					},
+					show: {
+						autoShow: true, //页面loaded事件发生后自动显示，默认为true
+						duration: 200 //页面动画持续时间，Android平台默认100毫秒，iOS平台默认200毫秒；
+					},
+					waiting: {
+						autoShow: true, //自动显示等待框，默认为true
+						title: '正在加载...', //等待对话框上显示的提示内容
+						duration: 200,
+						options: {
+							width: '70px', //等待框背景区域宽度，默认根据内容自动计算合适宽度
+							height: '70px', //等待框背景区域高度，默认根据内容自动计算合适高度
+						}
+					}
+				});
+			}
+		</script>
+	</body>
+
+</html>

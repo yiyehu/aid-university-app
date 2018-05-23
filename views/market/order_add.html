@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<title>订单</title>
+		<link rel="stylesheet" type="text/css" href="../../css/mui.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/iconfont.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/mui.picker.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/mui.poppicker.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/common.css" />
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../js/mui.min.js" charset="UTF-8"></script>
+		<script src="../../libs/vue.min.js" charset="UTF-8"></script>
+
+		<style type="text/css">
+			.mui-input-row label {
+				width: 100%;
+			}
+			
+			.li-margin-left-25 {
+				margin-left: 40px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav header-green">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">订单</h1>
+			<a class="mui-icon iconfont icon-queren1 mui-pull-right" onclick="vm.additem()"></a>
+		</header>
+		<div class="mui-content">
+			<form class="mui-input-group">
+				<div class="mui-row">
+					<ul class="mui-table-view" style="padding:3px 0px;margin: 0 auto;">
+						<li>
+							<div class="mui-card" v-show="addressShow">
+								<div class="mui-card-content">
+									<div class="mui-card-content-inner" style="margin:3px;">
+										<div class="mui-media-body" style="height:10vw">
+											<span class="mui-pull-left">收货人：{{userAddress.name}}</span><span class="mui-pull-right">电话： {{userAddress.mobile}}</span>
+											<span v-if="item.defaultAddr==1" class="fontsize5 iconfont icon-moren"></span>
+										</div>
+										<p class="mui-ellipsis-2">买家地址：{{userAddress.provinceName}}-{{userAddress.cityName}}-{{userAddress.regionName}}-{{userAddress.address}}</p>
+									</div>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div class="mui-card" style="margin:8px 0px;">
+								<div class="mui-card-header mui-card-media">
+									<img v-bind:src="baseURL+item.userImg" />
+									<div class="mui-media-body">
+										{{item.username}}
+										<span class="mui-badge mui-badge-red">￥{{item.price}}</span>
+									</div>
+								</div>
+								<div class="mui-card-content">
+									<div class="mui-card-content-inner">
+										<img class="mui-media-body mui-pull-left" v-bind:src="baseURL+item.goodsImg" v-bind:style="{width:'20vw',height:'20vw'}" />
+										<div class="mui-media-body" style="height:20vw">
+											<h4 class="mui-pull-top">{{item.goodsName}}</h4>
+											<div class="mui-pull-bottom" style="color:dodgerblue;">卖家地址：{{item.goodsAddress}}</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<ul id="payType" class="mui-table-view mui-table-view-radio">
+					<li class="mui-table-view-cell mui-selected  li-margin-left-25" value="0">
+						<a class="mui-navigate-right">
+							单成现金付款
+						</a>
+					</li>
+					<li class="mui-table-view-cell li-margin-left-25" value="1">
+						<a class="mui-navigate-right">
+							支付宝
+						</a>
+					</li>
+					<li class="mui-table-view-cell li-margin-left-25" value="2">
+						<a class="mui-navigate-right">
+							微信
+						</a>
+					</li>
+				</ul>
+				<ul id="deliverType" class="mui-table-view mui-table-view-radio">
+					<li class="mui-table-view-cell mui-selected li-margin-left-25" value="0">
+						<a class="mui-navigate-right">
+							买家取货：￥0
+						</a>
+					</li>
+					<li class="mui-table-view-cell li-margin-left-25" value="1">
+						<a class="mui-navigate-right">
+							卖家送货:￥3
+						</a>
+					</li>
+					<li class="mui-table-view-cell li-margin-left-25" value="2">
+						<a class="mui-navigate-right">
+							快递:￥7
+						</a>
+					</li>
+				</ul>
+				<div class="mui-row" style="height: 3em; padding-top: 2px;">
+					<textarea placeholder="备注" v-model="order.remark"></textarea>
+				</div>
+				<div class="mui-row">
+					<ul class="mui-table-view">
+						<li class="mui-table-view-cell" >
+							商品小计：
+							<span class="mui-badge mui-badge-red" v-model="order.totalMoney">￥{{order.totalMoney}}</span>
+						</li>
+					</ul>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript" charset="UTF-8">
+			mui.init({
+				swipeBack: true
+			});
+
+			var vm = new Vue({
+				el: '.mui-content',
+				data: {
+					item: {},
+					order: {},
+					userAddress: {},
+					addressShow: true
+				},
+				methods: {
+					init: function() {
+						var defaultUserAddressUrl = "app/useraddress/defaultUserAddress";
+						var token = commonUtils.getToken();
+						mui.getJSON(
+							baseURL + defaultUserAddressUrl, {
+								token: token
+							},
+							function(r) {
+								if(r.code === 0) {
+									vm.userAddress = r.userAddress;
+									vm.order.userName = r.userAddress.name;
+									vm.order.userMobile = r.userAddress.mobile;
+									vm.order.userAddress = r.userAddress.address;
+									vm.order.addressId = r.userAddress.addressId;
+								} else {
+									mui.toast(r.msg);
+								}
+							}
+						);
+					},
+					additem: function() {
+						var data = JSON.stringify(vm.order);
+						mui.ajax({
+							url: baseURL + "app/order/saveOfLogin",
+							headers: {
+								token: commonUtils.getToken()
+							},
+							data: data,
+							contentType: "application/json",
+							type: 'POST', //表示调用get方法请求；
+							dataType: 'json', //表示以json形式接受返回参数
+							success: function(r) { //请求成功，返回函数
+								if(r.code === 0) {
+									mui.toast("添加成功");
+									plus.webview.currentWebview().close();
+								} else {
+									mui.toast(r.msg);
+								}
+							}
+						});
+					},
+				}
+			});
+
+			mui.plusReady(function() {
+				vm.init();
+				vm.item = plus.webview.currentWebview().item;
+				vm.order.goodsId = vm.item.goodsId;
+				vm.order.goodsMoney = vm.item.price;
+				vm.order.totalMoney = vm.item.price;
+				vm.order.payType = 0;
+				vm.order.deliverType = 0;
+				vm.order.deliverMoney = 0;
+			});
+			document.querySelector('#payType').addEventListener('selected', function(e) {
+				vm.order.payType = e.detail.el.value;
+			});
+			document.querySelector('#deliverType').addEventListener('selected', function(e) {
+				vm.order.deliverType = e.detail.el.value;
+				if(e.detail.el.value == 0) {
+					vm.order.totalMoney = vm.order.goodsMoney;
+					vm.order.deliverMoney = 0;
+					vm.addressShow = false;
+				}
+				if(e.detail.el.value == 1) {
+					vm.order.totalMoney = vm.order.goodsMoney + 3;
+					vm.order.deliverMoney = 3;
+					if(vm.addressShow){
+						vm.addressShow = true;
+					}
+				}
+				if(e.detail.el.value == 2) {
+					vm.order.totalMoney = vm.order.goodsMoney + 7;
+					vm.order.deliverMoney = 7;
+					if(vm.addressShow){
+						vm.addressShow = true;
+					}
+				}
+			});
+			mui.back = function() {
+				plus.webview.currentWebview().close();
+			}
+		</script>
+
+	</body>
+
+</html>

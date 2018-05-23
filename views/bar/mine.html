@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>我的空间</title>
+		<link rel="stylesheet" type="text/css" href="../../css/mui.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/iconfont.css" />
+
+		<script src="../../js/mui.min.js" charset="UTF-8"></script>
+		<script src="../../libs/vue.min.js" charset="UTF-8"></script>
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<style type="text/css">
+			.headImg {
+				padding: 8% 0px 13% 0px;
+				background: url(../img/bg.jpeg);
+				background-position: center center;
+				background-size: 100% auto;
+			}
+			
+			.user {
+				text-align: center;
+			}
+			
+			.user div {
+				width: 4em;
+				height: 4em;
+				padding: 0px;
+				border-radius: 50%;
+				border: 2px solid white;
+				color: gray;
+				margin: 0px auto;
+				margin-bottom: 5px;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<div class="mui-content">
+
+			<div class="headImg">
+				<!--<span id="user" class="mui-btn mui-btn-link mui-icon iconfont icon-zhanghao"></span>-->
+				<div class="user">
+					<div>
+						<span id="userimg" class="mui-icon mui-icon-person" style="font-size: 3.8em; color: white;"></span>
+						<img id="trueimg" src="../img/bg.jpeg" style="width: 100%; height: 100%; border-radius: 50%;" />
+					</div>
+					<span id="username">请登录</span>
+				</div>
+			</div>
+			<div v-show="isLogin">
+				<ul class="mui-table-view" style="margin-top: 10px;">
+
+					<li class="mui-table-view-cell">
+						<a id="changeaddress" class="mui-navigate-right" href="../mine/pullrefresh_myGoods.html">
+							<span class="mui-icon iconfont icon-shangcheng"></span> 我的商品
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" href="../mine/aid_order_my.html">
+							<span class="mui-icon iconfont icon-yiwen"></span> 我的帮帮
+						</a>
+					</li>
+				</ul>
+
+				<ul class="mui-table-view" style="margin-top: 10px;">
+
+					<li class="mui-table-view-cell">
+						<a id="changeaddress" class="mui-navigate-right" href="../mine/goods_order_my.html">
+							<span class="mui-icon iconfont icon-shangpin"></span> 商品订单
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" href="../mine/aid_order_received.html">
+							<span class="mui-icon iconfont icon-jiedanjilu"></span> 帮帮接单
+						</a>
+					</li>
+				</ul>
+
+				<ul class="mui-table-view" style="margin-top: 20px;">
+					<li class="mui-table-view-cell">
+						<a id="changeaddress" class="mui-navigate-right" href="../mine/pullrefresh_userAddress.html">
+							<span class="mui-icon iconfont icon-dizhi"></span> 我的地址
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" href="../mine/changePassword.html">
+							<span class="mui-icon mui-icon-locked"></span> 修改密码
+						</a>
+					</li>
+				</ul>
+
+				<ul id="logoutBtn" class="mui-table-view" style="margin-top: 20px;margin-bottom: 20px;">
+					<li class="mui-table-view-cell" style="text-align: center;">
+						<span style="color: indianred;">退出登录</span>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<script type="text/javascript" charset="UTF-8">
+			var webView;
+			mui.init({
+				swipeBack: false,
+				preloadLimit: 5
+			});
+			var titleNView = { //详情页原生导航配置
+				backgroundColor: '#f7f7f7', //导航栏背景色
+				titleText: '', //导航栏标题
+				titleColor: '#000000', //文字颜色
+				type: 'transparent', //透明渐变样式
+				autoBackButton: true, //自动绘制返回箭头
+				splitLine: { //底部分割线
+					color: '#cccccc'
+				}
+			}
+			var aniShow;
+			var userimg;
+			var logoutBtn;
+			var trueimg;
+			var username;
+
+			var vm = new Vue({
+				el: '.mui-content',
+				data: {
+					isLogin: true,
+					user: {}
+				},
+				methods: {
+					getUser: function() {
+						var token = commonUtils.getToken();
+						mui.getJSON(
+							baseURL + 'app/user/InfoOfLogin', {
+								token: token
+							},
+							function(r) {
+								if(r.code === 0) {
+									vm.user = r.user;
+									trueimg.src = baseURL + vm.user.img;
+									username.innerText = vm.user.username;
+								} else {
+									mui.toast(r.msg);
+								}
+							}
+						);
+					}
+				}
+			});
+
+			mui.plusReady(function() {
+				userimg = document.getElementById('userimg');
+				logoutBtn = document.getElementById('logoutBtn');
+				trueimg = document.getElementById('trueimg');
+				username = document.getElementById('username');
+
+				//检测是否已经登录
+				if(!commonUtils.isLogin()) {
+					logoutBtn.style.display = 'none';
+					trueimg.style.display = 'none';
+					userimg.style.display = 'inline';
+					username.style.color = 'indianred';
+				} else {
+					vm.getUser();
+					logoutBtn.style.display = 'block';
+					trueimg.style.display = 'inline';
+					userimg.style.display = 'none';
+					username.style.color = 'black';
+				}
+				//点击头像登录
+				userimg.addEventListener('tap', function() {
+					if(!localStorage.getItem('user')) {
+						var id = "login.html";
+						var href = "login.html";
+						var title = '登录';
+						var aniShow = 'slide-in-bottom';
+						var isBars = false;
+						var barsIcon = '';
+
+						mui.fire(parentWebView, 'newWebView', {
+							id: id,
+							url: href,
+							aniShow: aniShow,
+							title: title,
+							isBars: isBars,
+							barsIcon: barsIcon
+						});
+					}
+				}, false);
+				//点击等出
+				logoutBtn.addEventListener('tap', function() {
+					commonUtils.logout();
+				}, false);
+
+				//接收登录成功事件
+				window.addEventListener('loginSuccess', function() {
+					//登出按钮显示出来 头像图片显示出来名字显示出来
+					logoutBtn.style.display = 'block';
+					userimg.style.display = 'none';
+					trueimg.style.display = 'inline';
+					var user = JSON.parse(localStorage.getItem('user'));
+					//				trueimg.src = user.website_logo; 
+					trueimg.src = '../img/user.jpg';
+					username.innerText = user.website_name;
+					username.style.color = 'black';
+				}, false);
+			});
+			var sub;
+			var subpage_style = {
+				top: '0px',
+				bottom: '0px'
+			};
+			mui('.mui-table-view').on('tap', 'a', function() {
+				var targetTab = this.getAttribute('href');
+				var aniShow = 'slide-in-right';
+				var href = this.getAttribute('href');
+				var title = this.innerText;
+				mui.openWindow({
+					url: href,
+					id: href,
+					styles: {
+						top: '0px', //新页面顶部位置
+						bottom: '0px', //新页面底部位置
+					},
+					extras: {
+						title:title
+					},
+					createNew: true, //是否重复创建同样id的webview，默认为false:不重复创建，直接显示
+					show: {
+						autoShow: true, //页面loaded事件发生后自动显示，默认为true
+						aniShow: aniShow, //页面显示动画，默认为”slide-in-right“；
+						duration: 200 //页面动画持续时间，Android平台默认100毫秒，iOS平台默认200毫秒；
+					},
+					waiting: {
+						autoShow: true, //自动显示等待框，默认为true
+						title: '正在加载...', //等待对话框上显示的提示内容
+						duration :200,
+						options: {
+							width: '70px', //等待框背景区域宽度，默认根据内容自动计算合适宽度
+							height: '70px', //等待框背景区域高度，默认根据内容自动计算合适高度
+						}
+					}
+				});
+			});
+			//退出登录成功
+			function logoutSuccess(data) {
+				mui.toast('已经退出登录，需要重新登录');
+				if(data.code == '000000') {
+					localStorage.removeItem('state');
+					logoutBtn.style.display = 'none';
+					userimg.style.display = 'inline';
+					trueimg.style.display = 'none';
+					username.innerText = '请登录';
+					username.style.color = 'indianred';
+				}
+			}
+		</script>
+	</body>
+
+</html>

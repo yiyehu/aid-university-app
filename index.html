@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="white">
+		<title>主页</title>
+		<link rel="stylesheet" type="text/css" href="css/mui.min.css" />
+		<link rel="stylesheet" type="text/css" href="css/common.css" />
+
+		<style type="text/css">
+			.mui-bar-nav .mui-title {
+				color: white;
+			}
+			
+			.mui-active .mui-icon,
+			.mui-active .mui-tab-label {
+				color: #41cea9;
+			}
+			
+		</style>
+
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav header-green">
+			<h1 id="nav-title" class="mui-title">首页</h1>
+		</header>
+		<nav class="mui-bar mui-bar-tab">
+			<a class="mui-tab-item" href="views/bar/market.html">
+				<span class="mui-icon mui-icon-paperplane"></span>
+				<span class="mui-tab-label">校园</span>
+			</a>
+			<a class="mui-tab-item" href="views/bar/bookshop.html">
+				<span class="mui-icon mui-icon-bars"></span>
+				<span class="mui-tab-label">书店</span>
+			</a>
+			<a class="mui-tab-item mui-active" href="views/bar/bangbang.html">
+				<span class="mui-icon mui-icon-spinner"></span>
+				<span class="mui-tab-label">帮帮</span>
+			</a>
+			<a class="mui-tab-item" href="views/bar/message.html">
+				<span class="mui-icon mui-icon-chatbubble"></span>
+				<span class="mui-tab-label">消息</span>
+			</a>
+			<a class="mui-tab-item" href="views/bar/mine.html">
+				<span class="mui-icon mui-icon-person"></span>
+				<span class="mui-tab-label">我的</span>
+			</a>
+		</nav>
+
+		<script src="js/mui.min.js" charset="UTF-8"></script>
+		<script type="text/javascript" charset="UTF-8">
+			mui.init({
+				swipeBack: false
+			});
+			var mainWebView; //当前主webview
+			var navtitle;
+			var curTabItem; //当前被选中tabitem
+			var barItemUrl = ['views/bar/market.html', 'views/bar/bookshop.html','views/bar/bangbang.html', 'views/bar/message.html', 'views/bar/mine.html'];
+			var barItemWebView = {}; //每个tabitem所对应显示的页面对象
+			
+			mui.plusReady(function() {
+
+				//改变statusbar
+				plus.navigator.setStatusBarBackground('#41cea9');
+				navtitle = document.getElementById('nav-title');
+				mainWebView = plus.webview.currentWebview();
+				//初始化页面,
+				inittabitemWebviews();
+				//为每个bar－item添加点击事件
+				addEventForTabitem();
+			});
+
+			//关闭启动页面
+			function closeStartScreent() {
+				//创建父子模版完成后关闭启动页面
+				plus.navigator.closeSplashscreen();
+			}
+
+			//初始化每个tabitem所对应的页面
+			function inittabitemWebviews() {
+				for(var i = 0; i < barItemUrl.length; i++) {
+					barItemWebView[i] = mui.preload({
+						url: barItemUrl[i],
+						id: barItemUrl[i],
+						styles: {
+							top: '44px',
+							bottom: '51px',
+							left: '0px',
+							bounce: 'vertical',
+							bounceBackground: '#DCDCDC'
+						},
+						waiting: {
+							autoShow: false
+						}
+					});
+					//				if (i != 0) {
+					barItemWebView[i].hide();
+					//				}
+					mainWebView.append(barItemWebView[i]);
+				}
+
+				barItemWebView[2].show();
+			}
+			//为每个tabitem添加监听
+
+			function addEventForTabitem() {
+				mui('.mui-bar-tab').on('tap', '.mui-tab-item', function() {
+					var tabitem = this;
+					if(tabitem == curTabItem) {
+						return;
+					}
+					curTabItem = tabitem;
+					navtitle.innerText = tabitem.children[tabitem.children.length - 1].innerText;
+					//设置将显示当前webview
+					showCurWebView(tabitem.getAttribute('href'));
+				});
+			}
+
+			//设置webview的切换显示的函数
+			function showCurWebView(href) {
+				var index = 0;
+				for(var i = 0; i < barItemUrl.length; i++) {
+					if(href == barItemUrl[i]) {
+						index = i;
+					} else {
+						barItemWebView[i].hide();
+					}
+				}
+				barItemWebView[index].show();
+			}
+			//两次点击返回
+			var first = null;
+			mui.back = function() {
+				//首次按键
+				if(!first) {
+					first = new Date().getTime();
+					mui.toast("再按一次退出");
+					setTimeout(function() {
+						first = null;
+					}, 1000);
+				} else {
+					if(new Date().getTime() - first < 1000) {
+						plus.runtime.quit();
+					}
+				}
+			}
+		</script>
+
+	</body>
+
+</html>

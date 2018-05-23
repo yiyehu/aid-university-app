@@ -1,0 +1,28 @@
+.color-green{
+	color: #41cea9;
+}
+.background-color-green{
+	background-color:#41CEA9;
+	color: white;
+}
+
+.header-green{
+	background-color:#41CEA9;
+}
+
+.header-green>h1,a{
+	color:white;
+}
+
+.btn-green {
+	color: #fff;
+	border: 1px solid #41cea9;
+	background-color: #41cea9;
+}
+
+.btn-green.mui-active:enabled,
+.btn-green:enabled:active {
+	color: #fff;
+	border: 1px solid white;
+	background-color: #41dfa9;
+}

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>myGoods</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../../css/mui.min.css">
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../libs/vue.min.js"></script>
+		<script src="../../js/mui.min.js"></script>
+		<style type="text/css">
+			.mui-control-content {
+				background-color: white;
+			}
+			
+			.mui-control-content .mui-loading {
+				margin-top: 50px;
+			}
+			
+			.mui-card .mui-control-content {
+				padding: 10px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="myGoodsDiv" class="mui-content">
+			<!--顶部消息分类 开始-->
+			<div style="padding: 10px 10px;">
+				<div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-positive">
+					<template v-for="(item,index) in goodsStatus">
+						<a v-if="item.status==0" class="mui-control-item mui-active" href="#itemmobile" @tap="vm.queryRelevantGoodsInfoViewByGoodsStatus(item.status)">{{item.name}}</a>
+						<a v-if="item.status!=0" class="mui-control-item" href="#itemmobile" @tap="vm.queryRelevantGoodsInfoViewByGoodsStatus(item.status)">{{item.name}}</a>
+					</template>
+				</div>
+			</div>
+			<div id="itemmobile" class="mui-control-content mui-active">
+				<div id="pullrefresh" class="mui-content mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<template v-for="item in list">
+							<div class="mui-card">
+								<div class="mui-card-content">
+									<a href="javascript:;" :data-guid="item.goodsId" @tap="open_detail(item)">
+										<div class="mui-card-content-inner">
+											<img class="mui-media-object mui-pull-left" v-bind:src="baseURL+item.goodsImg" v-bind:style="{width:'30vw',height:'30vw'}" />
+											<div class="mui-media-body" style="height:26vw">
+												<p>
+													<h4 class="mui-pull-left">{{item.goodsName}}</h4>
+													<span class="mui-badge-red">￥{{item.price}}</span>
+												</p>
+												<p style="color: #333;" v-text="commonUtils.getSubString(item.description,40)"></p>
+											</div>
+										</div>
+									</a>
+									<div class="mui-card-footer">
+										<div>发表于 {{item.addtime}}</div>
+										<div style="color:dodgerblue;">
+											<a href="#popoverCreated" v-if="vm.currGoodsSta==0" @tap="popover(item)" style="padding: 5px 20px;"><span class="mui-icon mui-icon-more"></span></a>
+											<a href="#popoverHasSold" v-if="vm.currGoodsSta==1" @tap="popover(item)" style="padding: 5px 20px;"><span class="mui-icon mui-icon-more"></span></a>
+											<a href="#popoverWaitingFeedback" v-if="vm.currGoodsSta==2" @tap="popover(item)" style="padding: 5px 20px;"><span class="mui-icon mui-icon-more"></span></a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</template>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--弹出的菜单-->
+		<div id="popoverCreated" class="mui-popover">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view">
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="open_detail()">查看详情</a>
+						</li>
+						<li class="mui-table-view-cell">
+							<a href="#">修改</a>
+						</li>
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="vm.delete()">删除</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!--弹出的菜单-->
+		<div id="popoverHasSold" class="mui-popover">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view">
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="open_detail()">查看详情</a>
+						</li>
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="vm.confirmTheDelivery()">确认发货</a>
+						</li>
+						<li class="mui-table-view-cell">
+							<a href="#">修改</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+			
+		<!--弹出的菜单-->
+		<div id="popoverWaitingFeedback" class="mui-popover">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view">
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="open_detail()">查看详情</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-------------------------------------->
+		<script src="../../js/modules/app/mine/goods_my.js" charset="UTF-8 "></script>
+		<script type="text/javascript " charset="UTF-8 ">
+			var webview_detail = null; //详情页webview
+			mui.init({
+				gestureConfig: {
+					doubletap: true
+				},
+				swipeBack: false, //把右滑关闭功能 关闭  
+				pullRefresh: {
+					container: '#pullrefresh',
+					down: {
+						style: 'circle',
+						auto: true,
+						callback: pulldownRefresh
+					},
+					up: {
+						contentrefresh: '正在加载...',
+						callback: pullupRefresh
+					}
+				}
+			});
+			var titleNView = { //详情页原生导航配置
+				backgroundColor: '#f7f7f7', //导航栏背景色
+				titleText: '', //导航栏标题
+				titleColor: '#000000', //文字颜色
+				type: 'transparent', //透明渐变样式
+				autoBackButton: true, //自动绘制返回箭头
+				splitLine: { //底部分割线
+					color: '#cccccc'
+				}
+			}
+
+			function pulldownRefresh() {
+				if(window.plus && plus.networkinfo.getCurrentType() === plus.networkinfo.CONNECTION_NONE) {
+					plus.nativeUI.toast('似乎已断开与互联网的连接', {
+						verticalAlign: 'top'
+					});
+					mui('#pullrefresh').pullRefresh().endPulldownToRefresh();
+					return;
+				}
+				vm.pulldownRefresh();
+			}
+			/**
+			 * 上拉加载拉取历史列表 
+			 */
+			function pullupRefresh() {
+				if(vm.currPage < vm.totalPage) {
+					vm.pullupRefresh(vm.currGoodsSta);
+				} else {
+					mui('#pullrefresh').pullRefresh().endPullupToRefresh();
+					mui.toast("没有更多数据了");
+				}
+			}
+			mui.plusReady(function() {
+				//预加载详情页
+				webview_detail = mui.preload({
+					url: '../market/detail.html',
+					id: 'get_detail',
+					styles: {
+						"render": "always",
+						"popGesture": "hide",
+						"bounce": "vertical",
+						"bounceBackground": "#efeff4",
+						"titleNView": titleNView
+					}
+				});
+			});
+
+			/**
+			 * 弹出菜单前设置当前点击的对象
+			 * 
+			 * @param {Object} item 当前点击的goods对象
+			 */
+			function popover(item) {
+				vm.currGoodsItem = item;
+			}
+
+			/**
+			 * 打开消息详情
+			 * 
+			 * @param {Object} item 当前点击的goods对象
+			 */
+			function open_detail(item) {
+				if(item == null){
+					item = vm.currGoodsItem ;
+				}
+				//触发子窗口变更新闻详情
+				mui.fire(webview_detail, 'get_detail', {
+					guid: item.goodsId,
+					styles:{
+						"titleNView": titleNView
+					},
+					item: item
+				});
+
+				//更改详情页原生导航条信息
+				titleNView.titleText = item.goodsName;
+				setTimeout(function() {
+					webview_detail.show("slide-in-right", 300);
+				}, 150);
+			}
+		</script>
+
+	</body>
+
+</html>

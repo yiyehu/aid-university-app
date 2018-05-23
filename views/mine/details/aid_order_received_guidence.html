@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<title>步行路线规划</title>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=xULbFtR21zj1nGUQkhVFPwKzduVn4WVS"></script>
+<style type="text/css">
+body, html,#container {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+</style>
+</head>
+<body>
+<div id="container"></div>
+<script type="text/javascript" src="../../../js/mui.min.js" ></script>
+<script type="text/javascript">
+var map = new BMap.Map("container"); 
+map.centerAndZoom(new BMap.Point(120.143861, 33.379851), 14); 
+map.addControl(new BMap.NavigationControl());    
+map.addControl(new BMap.ScaleControl());    
+map.addControl(new BMap.OverviewMapControl());
+map.addControl(new BMap.GeolocationControl());    
+map.addControl(new BMap.MapTypeControl());    
+var walking = new BMap.WalkingRoute(map, { 
+    renderOptions: { 
+        map: map, 
+        autoViewport: true 
+    }
+});
+  
+var start = new BMap.Point(120.143861,33.379851);  
+var end = null;
+var geolocation = new BMap.Geolocation();
+	geolocation.getCurrentPosition(function(r){
+		if(this.getStatus() == BMAP_STATUS_SUCCESS){
+			var mk = new BMap.Marker(r.point);
+			map.addOverlay(mk);
+			map.panTo(r.point);
+          end = new BMap.Point(r.point.lng,r.point.lat);
+//walking.search(start, end);
+			mui.toast('您的位置：'+r.point.lng+','+r.point.lat);
+		}
+		else {
+			mui.toast('failed'+this.getStatus());
+		}        
+},{enableHighAccuracy: true})
+
+map.addEventListener("click", function(e){    
+    mui.toast(e.point.lng + ", " + e.point.lat);    
+});
+</script>
+</body>
+</html>

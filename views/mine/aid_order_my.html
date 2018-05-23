@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../../css/mui.min.css">
+		<link rel="stylesheet" href="../../css/iconfont.css">
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			
+			.mui-bar~.mui-content .mui-fullscreen {
+				top: 44px;
+				height: auto;
+			}
+			
+			.mui-pull-top-tips {
+				position: absolute;
+				top: -20px;
+				left: 50%;
+				margin-left: -25px;
+				width: 40px;
+				height: 40px;
+				border-radius: 100%;
+				z-index: 1;
+			}
+			
+			.mui-bar~.mui-pull-top-tips {
+				top: 24px;
+			}
+			
+			.mui-pull-top-wrapper {
+				width: 42px;
+				height: 42px;
+				display: block;
+				text-align: center;
+				background-color: #efeff4;
+				border: 1px solid #ddd;
+				border-radius: 25px;
+				background-clip: padding-box;
+				box-shadow: 0 4px 10px #bbb;
+				overflow: hidden;
+			}
+			
+			.mui-pull-top-tips.mui-transitioning {
+				-webkit-transition-duration: 200ms;
+				transition-duration: 200ms;
+			}
+			
+			.mui-pull-top-tips .mui-pull-loading {
+				/*-webkit-backface-visibility: hidden;
+				-webkit-transition-duration: 400ms;
+				transition-duration: 400ms;*/
+				margin: 0;
+			}
+			
+			.mui-pull-top-wrapper .mui-icon,
+			.mui-pull-top-wrapper .mui-spinner {
+				margin-top: 7px;
+			}
+			
+			.mui-pull-top-wrapper .mui-icon.mui-reverse {
+				/*-webkit-transform: rotate(180deg) translateZ(0);*/
+			}
+			
+			.mui-pull-bottom-tips {
+				text-align: center;
+				background-color: #efeff4;
+				font-size: 15px;
+				line-height: 40px;
+				color: #777;
+			}
+			
+			.mui-pull-top-canvas {
+				overflow: hidden;
+				background-color: #fafafa;
+				border-radius: 40px;
+				box-shadow: 0 4px 10px #bbb;
+				width: 40px;
+				height: 40px;
+				margin: 0 auto;
+			}
+			
+			.mui-pull-top-canvas canvas {
+				width: 40px;
+			}
+			
+			.mui-slider-indicator.mui-segmented-control {
+				background-color: #efeff4;
+			}
+			
+			.mui-table-view.mui-grid-view .mui-table-view-cell .mui-media-body {
+				font-size: 15px;
+				margin-top: 8px;
+				color: #333;
+			}
+			
+			.mui-card-header.mui-card-media span {
+				height: 10vw
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a id="back" class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 id="title" class="mui-title">我的帮帮需求</h1>
+			<a id="add" href="javascript:;" onclick="openAddAidOrderWindow()" class="mui-icon mui-icon-plus mui-pull-right" style="padding: 10px 20px;"></a>
+		</header>
+		<div id="bookshopDiv" class="mui-content">
+			<div id="slider" class="mui-slider mui-fullscreen">
+				<div id="sliderSegmentedControl" class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
+					<div class="mui-scroll">
+						<template v-for="(item,index) in aidCategorys">
+							<a v-if="index==0" class="mui-control-item mui-active" href="#itemmoblie" @tap="vm.queryRelevantAidsByaidCategoryId(item.categoryId)"><span style="color: #69B452;" :class="item.icon"></span>{{item.name}}</a>
+							<a v-if="index!=0" class="mui-control-item" href="#itemmoblie" @tap="vm.queryRelevantAidsByaidCategoryId(item.categoryId)"><span style="color: #69B452;" :class="item.icon"></span>{{item.name}}</a>
+						</template>
+					</div>
+				</div>
+				<div class="mui-slider-group">
+					<div id="itemmoblie" class="mui-slider-item mui-control-content mui-active">
+						<div id="scroll" class="mui-scroll-wrapper">
+							<div class="mui-scroll">
+								<div>
+									<template v-for="item in list">
+										<div class="mui-card">
+											<a href="javascript:;" :data-guid="item.aidId" @tap="open_detail(item)">
+												<div class="mui-card-header">
+													<div style="color: #333;" class="mui-media-body">
+														<span style="color: #69B452;" :class="vm.getCategorysIcon(item.categoryId)"></span> {{item.title}}
+														<span style="font-size:3px;" v-bind:class="'mui-badge '+(item.paymentMethod==0? 'mui-badge-green':'mui-badge-blue')" v-text="item.paymentMethod==0?'现金付款':'网上支付'"></span>
+														<p>发表于 {{item.createTime}}</p>
+													</div>
+													<span v-bind:class="'mui-badge '+(item.status==0?'mui-badge-green':item.status==1?'mui-badge-yellow':item.status==2?'mui-badge-blue':'mui-badge-grey')" v-text="item.status==0?'已创建':item.status==1?'进行中':item.status==2?'已完成':'已取消'"></span>
+												</div>
+												<div class="mui-card-content">
+													<div class="mui-card-content-inner">
+														<div class="mui-media-body" style="height:10vw">
+															<p style="color: #333;" v-html="commonUtils.getSubString(item.description,40)"></p>
+
+														</div>
+														<div style="color: #333;">截止日期：{{item.deadline}}</div>
+														<!--<div style="margin-left:10vw ;" v-for="message in item.messagelist">{{message.userName}}:{{message.content}}</div>-->
+													</div>
+												</div>
+											</a>
+											<div class="mui-card-footer">
+												<div><span class="iconfont icon-dizhi"></span>&nbsp;&nbsp;<span style="color:dodgerblue;">{{item.orderAddress}}</span> </div>
+												<div>
+													<a href="#popoverCreated" v-if="item.status==0" @tap="popover(item)" style="padding: 5px 20px;"><span class="mui-icon mui-icon-more"></span></a>
+													<a href="#popoverHasReceived" v-if="item.status!=0" @tap="popover(item)" style="padding: 5px 20px;"><span class="mui-icon mui-icon-more"></span></a>
+												</div>
+											</div>
+										</div>
+									</template>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--弹出的菜单-->
+		<div id="popoverCreated" class="mui-popover" style="height:39vw;">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view">
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="open_detail()">查看详情</a>
+						</li>
+						<li class="mui-table-view-cell">
+							<a href="#">修改</a>
+						</li>
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="vm.delete()">删除</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!--弹出的菜单-->
+		<div id="popoverHasReceived" class="mui-popover" style="height:26vw;">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view">
+						<li class="mui-table-view-cell">
+							<a href="#" onclick="open_detail()">查看详情</a>
+						</li>
+						<li class="mui-table-view-cell">
+							<a href="#">修改</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-------------------------------------->
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../js/mui.min.js"></script>
+		<script src="../../libs/vue.min.js"></script>
+		<script src="../../js/modules/app/mine/aid_order.js" charset="UTF-8"></script>
+		<script src="../../libs/mui.pullToRefresh.js"></script>
+		<script src="../../libs/mui.pullToRefresh.material.js"></script>
+		<script>
+			var webview_detail = null; //详情页webview
+			mui.init({
+				swipeBack: false, //把右滑关闭功能 关闭 
+			});
+			(function($) {
+				//阻尼系数
+				var deceleration = mui.os.ios ? 0.003 : 0.0009;
+				$('.mui-scroll-wrapper').scroll({
+					bounce: false,
+					indicators: true, //是否显示滚动条
+					deceleration: deceleration
+				});
+				$.ready(function() {
+					//循环初始化所有下拉刷新，上拉加载。
+					$.each(document.querySelectorAll('.mui-slider-group .mui-scroll'), function(index, pullRefreshEl) {
+						$(pullRefreshEl).pullToRefresh({
+							down: {
+								callback: function() {
+									var self = this;
+									setTimeout(function() {
+										pulldownRefresh();
+										self.endPullDownToRefresh();
+									}, 1000);
+								}
+							},
+							up: {
+								callback: function() {
+									var self = this;
+									setTimeout(function() {
+										pullupRefresh();
+										self.endPullUpToRefresh();
+									}, 1000);
+								}
+							}
+						});
+					});
+				});
+			})(mui);
+			var titleNView = { //详情页原生导航配置
+				backgroundColor: '#f7f7f7', //导航栏背景色
+				titleText: '', //导航栏标题
+				titleColor: '#000000', //文字颜色
+				type: 'transparent', //透明渐变样式
+				autoBackButton: true, //自动绘制返回箭头
+				splitLine: { //底部分割线
+					color: '#cccccc'
+				}
+			}
+
+			function pulldownRefresh() {
+				if(window.plus && plus.networkinfo.getCurrentType() === plus.networkinfo.CONNECTION_NONE) {
+					mui.toast('似乎已断开与互联网的连接');
+					return;
+				}
+				vm.logStatus = 1;
+				vm.pulldownRefresh();
+			}
+			/**
+			 * 上拉加载拉取历史列表 
+			 */
+			function pullupRefresh() {
+				if(vm.currPage < vm.totalPage) {
+					vm.logStatus = 1;
+					vm.pullupRefresh(vm.currAidCategory);
+				} else {
+					mui.toast("没有更多数据了");
+				}
+			}
+			mui.plusReady(function() {
+				pulldownRefresh();
+				//预加载详情页
+				webview_detail = mui.preload({
+					url: '../mine/aid_order_my_detail.html',
+					id: 'aid_order_my_detail',
+					styles: {
+						"render": "always",
+						"popGesture": "hide",
+						"bounce": "vertical",
+						"bounceBackground": "#efeff4",
+						"titleNView": titleNView
+					}
+				});
+			});
+
+			/**
+			 * 弹出菜单前设置当前点击的对象
+			 * 
+			 * @param {Object} item 当前点击的aid对象
+			 */
+			function popover(item) {
+				vm.currAidItem = item;
+			}
+
+			/**
+			 * 打开消息详情
+			 * 
+			 * @param {Object} item 当前点击的aid对象
+			 */
+			function open_detail(item) {
+				if(item == null) {
+					item = vm.currAidItem;
+				}
+				//触发子窗口变更新闻详情
+				mui.fire(webview_detail, 'aid_order_my_detail', {
+					guid: item.aidId,
+					styles: {
+						"titleNView": titleNView
+					},
+					item: item
+				});
+
+				//更改详情页原生导航条信息
+				titleNView.titleText = item.title;
+				setTimeout(function() {
+					webview_detail.show("slide-in-right", 300);
+				}, 150);
+			}
+		/**
+		 * 打开添加AidOrder的窗口
+		 */
+		function openAddAidOrderWindow() {
+			mui.openWindow({
+				url: 'aid_order_add.html',
+				id: 'aid_order_add.html',
+				styles: {
+					top: '0px', //新页面顶部位置
+					bottom: '0px', //新页面底部位置
+				},
+				createNew: true, //是否重复创建同样id的webview，默认为false:不重复创建，直接显示
+				show: {
+					autoShow: true, //页面loaded事件发生后自动显示，默认为true
+					duration: 200 //页面动画持续时间，Android平台默认100毫秒，iOS平台默认200毫秒；
+				},
+				waiting: {
+					autoShow: true, //自动显示等待框，默认为true
+					title: '正在加载...', //等待对话框上显示的提示内容
+					duration: 200,
+					options: {
+						width: '70px', //等待框背景区域宽度，默认根据内容自动计算合适宽度
+						height: '70px', //等待框背景区域高度，默认根据内容自动计算合适高度
+					}
+				}
+			});
+		}
+		</script>
+	</body>
+
+</html>

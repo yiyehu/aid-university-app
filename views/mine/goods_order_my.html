@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>我的商品订单</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<link rel="stylesheet" href="../../css/mui.min.css">
+		<link rel="stylesheet" href="../../css/iconfont.css">
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			
+			.mui-bar~.mui-content .mui-fullscreen {
+				top: 44px;
+				height: auto;
+			}
+			
+			.mui-pull-top-tips {
+				position: absolute;
+				top: -20px;
+				left: 50%;
+				margin-left: -25px;
+				width: 40px;
+				height: 40px;
+				border-radius: 100%;
+				z-index: 1;
+			}
+			
+			.mui-bar~.mui-pull-top-tips {
+				top: 24px;
+			}
+			
+			.mui-pull-top-wrapper {
+				width: 42px;
+				height: 42px;
+				display: block;
+				text-align: center;
+				background-color: #efeff4;
+				border: 1px solid #ddd;
+				border-radius: 25px;
+				background-clip: padding-box;
+				box-shadow: 0 4px 10px #bbb;
+				overflow: hidden;
+			}
+			
+			.mui-pull-top-tips.mui-transitioning {
+				-webkit-transition-duration: 200ms;
+				transition-duration: 200ms;
+			}
+			
+			.mui-pull-top-tips .mui-pull-loading {
+				/*-webkit-backface-visibility: hidden;
+				-webkit-transition-duration: 400ms;
+				transition-duration: 400ms;*/
+				margin: 0;
+			}
+			
+			.mui-pull-top-wrapper .mui-icon,
+			.mui-pull-top-wrapper .mui-spinner {
+				margin-top: 7px;
+			}
+			
+			.mui-pull-top-wrapper .mui-icon.mui-reverse {
+				/*-webkit-transform: rotate(180deg) translateZ(0);*/
+			}
+			
+			.mui-pull-bottom-tips {
+				text-align: center;
+				background-color: #efeff4;
+				font-size: 15px;
+				line-height: 40px;
+				color: #777;
+			}
+			
+			.mui-pull-top-canvas {
+				overflow: hidden;
+				background-color: #fafafa;
+				border-radius: 40px;
+				box-shadow: 0 4px 10px #bbb;
+				width: 40px;
+				height: 40px;
+				margin: 0 auto;
+			}
+			
+			.mui-pull-top-canvas canvas {
+				width: 40px;
+			}
+			
+			.mui-slider-indicator.mui-segmented-control {
+				background-color: #efeff4;
+			}
+			
+			.mui-table-view.mui-grid-view .mui-table-view-cell .mui-media-body {
+				font-size: 15px;
+				margin-top: 8px;
+				color: #333;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">我的商品订单</h1>
+		</header>
+		<div id="bookshopDiv" class="mui-content">
+			<div id="slider" class="mui-slider mui-fullscreen">
+				<div id="sliderSegmentedControl" class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted">
+					<div class="mui-scroll">
+						<template v-for="(item,index) in goodsOrderStatus">
+							<a v-if="index==1" class="mui-control-item mui-active" href="#itemmoblie" @tap="vm.queryRelevantOrderByStatus(item.status)">{{item.name}}</a>
+							<a v-if="index>1" class="mui-control-item" href="#itemmoblie" @tap="vm.queryRelevantOrderByStatus(item.status)">{{item.name}}</a>
+						</template>
+					</div>
+				</div>
+				<div class="mui-slider-group">
+					<div id="itemmoblie" class="mui-slider-item mui-control-content mui-active">
+						<div id="scroll" class="mui-scroll-wrapper">
+							<div class="mui-scroll">
+								<div>
+									<template v-for="item in list">
+										<div class="mui-card">
+											<div class="mui-card-header mui-card-media">
+												<img v-bind:src="baseURL+item.ownerImg" style="width: 9vw;" />
+												<div class="mui-media-body">
+													{{item.ownerName}}
+													<span v-bind:class="'mui-badge '+(item.status==1?'mui-badge-green':item.status==2?'mui-badge-yellow':item.status==3?'mui-badge-blue':'mui-badge-grey')" v-text="item.status==1?'待发货':item.status==2?'待收货':item.status==3? '待评价':'已完成'"></span>
+												</div>
+											</div>
+											<div class="mui-card-content">
+												<div class="mui-card-content-inner">
+													<img class="mui-media-body mui-pull-left" v-bind:src="baseURL+item.goodsImg" v-bind:style="{width:'20vw',height:'20vw'}" />
+													<div class="mui-media-body" style="height:20vw">
+														<span class="mui-pull-right mui-badge mui-badge-red">￥{{item.price}}</span>
+														<h4 class="mui-pull-top">{{item.goodsName}}</h4>
+														<div class="mui-pull-bottom" style="color:dodgerblue;">卖家地址：{{item.goodsAddress}}</div>
+														<div class="mui-pull-bottom" style="color:dodgerblue;">合计：<span class="mui-badge mui-badge-red">￥{{item.totalMoney}}</span></div>
+													</div>
+												</div>
+											</div>
+											<div class="mui-card-footer">
+												<button class="mui-btn mui-btn-grey mui-pull-right">查看物流</button>
+												<button class="mui-btn mui-btn-grey mui-pull-right">延长收货</button>
+												<button v-if="item.status==2" class="mui-btn mui-btn-danger mui-pull-right" @tap="vm.confirmTheReceived(item.goodsId)">确认收货</button>
+												<button v-if="item.status==3" class="mui-btn mui-btn-danger mui-pull-right" @tap="vm.openCommentWindow(item.goodsId)">评价</button>
+											</div>
+										</div>
+									</template>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-------------------------------------->
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../js/mui.min.js"></script>
+		<script src="../../libs/vue.min.js"></script>
+		<script src="../../js/modules/app/mine/goods_order_my.js" charset="UTF-8"></script>
+		<script src="../../libs/mui.pullToRefresh.js"></script>
+		<script src="../../libs/mui.pullToRefresh.material.js"></script>
+		<script>
+			var webview_detail = null; //详情页webview
+			mui.init({
+				swipeBack: false, //把右滑关闭功能 关闭 
+			});
+			(function($) {
+				//阻尼系数
+				var deceleration = mui.os.ios ? 0.003 : 0.0009;
+				$('.mui-scroll-wrapper').scroll({
+					bounce: false,
+					indicators: true, //是否显示滚动条
+					deceleration: deceleration
+				});
+				$.ready(function() {
+					//循环初始化所有下拉刷新，上拉加载。
+					$.each(document.querySelectorAll('.mui-slider-group .mui-scroll'), function(index, pullRefreshEl) {
+						$(pullRefreshEl).pullToRefresh({
+							down: {
+								callback: function() {
+									var self = this;
+									setTimeout(function() {
+										pulldownRefresh();
+										self.endPullDownToRefresh();
+									}, 1000);
+								}
+							},
+							up: {
+								callback: function() {
+									var self = this;
+									setTimeout(function() {
+										pullupRefresh();
+										self.endPullUpToRefresh();
+									}, 1000);
+								}
+							}
+						});
+					});
+				});
+			})(mui);
+			var titleNView = { //详情页原生导航配置
+				backgroundColor: '#f7f7f7', //导航栏背景色
+				titleText: '', //导航栏标题
+				titleColor: '#000000', //文字颜色
+				type: 'transparent', //透明渐变样式
+				autoBackButton: true, //自动绘制返回箭头
+				splitLine: { //底部分割线
+					color: '#cccccc'
+				}
+			}
+
+			function pulldownRefresh() {
+				if(window.plus && plus.networkinfo.getCurrentType() === plus.networkinfo.CONNECTION_NONE) {
+					mui.toast('似乎已断开与互联网的连接');
+					return;
+				}
+				vm.pulldownRefresh();
+			}
+			/**
+			 * 上拉加载拉取历史列表 
+			 */
+			function pullupRefresh() {
+				if(vm.currPage < vm.totalPage) {
+					vm.pullupRefresh(vm.currStatus);
+				} else {
+					mui.toast("没有更多数据了");
+				}
+			}
+			mui.plusReady(function() {
+				pulldownRefresh();
+				//预加载详情页
+				webview_detail = mui.preload({
+					url: '../mine/aid_order_received_detail.html',
+					id: 'aid_order_received_detail',
+					styles: {
+						"render": "always",
+						"popGesture": "hide",
+						"bounce": "vertical",
+						"bounceBackground": "#efeff4",
+						"titleNView": titleNView
+					}
+				});
+			});
+
+			/**
+			 * 弹出菜单前设置当前点击的对象
+			 * 
+			 * @param {Object} item 当前点击的aid对象
+			 */
+			function popover(item) {
+				vm.currAidItem = item;
+			}
+
+			/**
+			 * 打开消息详情
+			 * 
+			 * @param {Object} item 当前点击的aid对象
+			 */
+			function open_detail(item) {
+				if(item == null) {
+					item = vm.currAidItem;
+				}
+				//触发子窗口变更新闻详情
+				mui.fire(webview_detail, 'aid_order_received_detail', {
+					guid: item.aidId,
+					styles: {
+						"titleNView": titleNView
+					},
+					item: item
+				});
+
+				//更改详情页原生导航条信息
+				titleNView.titleText = item.title;
+				setTimeout(function() {
+					webview_detail.show("slide-in-right", 300);
+				}, 150);
+			}
+		</script>
+	</body>
+
+</html>

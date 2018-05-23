@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<title>添加地址</title>
+		<link rel="stylesheet" type="text/css" href="../../css/mui.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/iconfont.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/mui.picker.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/mui.poppicker.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/common.css" />
+
+		<style type="text/css">
+			.mui-input-row label {
+				width: 100%;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav header-green">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">地址</h1>
+			<a class="mui-icon iconfont icon-queren1 mui-pull-right" onclick="vm.addUserAddress()"></a>
+		</header>
+		<div class="mui-content">
+			<form class="mui-input-group">
+				<div class="mui-input-row">
+					<input type="text" class="mui-input-clear" v-model="userAddress.name" placeholder="收货人姓名" />
+				</div>
+				<div class="mui-input-row">
+					<input type="text" class="mui-input-clear" v-model="userAddress.mobile" placeholder="手机号码" />
+				</div>
+				<div class="mui-button-row" onclick="showCityPickerWindow()">
+					<span id='cityPicker'>省、市、区</span>
+				</div>
+				<div class="mui-input-row" style="height: 4em; padding-top: 2px;">
+					<textarea placeholder="详细地址" v-model="userAddress.address"></textarea>
+				</div>
+				<ul class="mui-table-view">
+					<li class="mui-table-view-cell">
+						<span>默认</span>
+						<div class="mui-switch" id="defaultAddr" v-model="userAddress.address">
+							<div class="mui-switch-handle"></div>
+						</div>
+					</li>
+				</ul>
+			</form>
+		</div>
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../js/mui.min.js" charset="UTF-8"></script>
+		<script src="../../libs/vue.min.js" charset="UTF-8"></script>
+		<script src="../../libs/city.data.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../libs/city.data-3.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../libs/mui.poppicker.js"></script>
+		<script src="../../libs/mui.picker.min.js" charset="UTF-8"></script>
+		<script type="text/javascript" charset="UTF-8">
+			mui.init({
+				swipeBack: true
+			});
+
+			var vm = new Vue({
+				el: '.mui-content',
+				data: {
+					userAddress: {},
+				},
+				methods: {
+					addUserAddress: function() {
+						var data = JSON.stringify(vm.userAddress);
+						mui.ajax({
+							url: baseURL + "app/useraddress/saveOfLogin", //delete请求路径；
+							headers: {
+								token: commonUtils.getToken()
+							},
+							data:data,
+							contentType:"application/json",
+							type: 'POST', //表示调用get方法请求；
+							dataType: 'json', //表示以json形式接受返回参数
+							success: function(r) { //请求成功，返回函数
+								if(r.code === 0) {
+									mui.toast("添加成功");
+									plus.webview.currentWebview().close();
+								} else {
+									mui.toast(r.msg);
+								}
+							}
+						});
+					}
+				}
+			});
+
+			mui.plusReady(function() {
+
+			});
+			mui('.mui-content .mui-switch')[0].addEventListener('toggle', function(event) { //循环所有toggle
+				this.parentNode.querySelector('span').innerText = '默认：' + (event.detail.isActive ? 'true' : 'false');
+				vm.userAddress.defaultAddr = event.detail.isActive ? 1 : 0;
+			});
+			mui.back = function() {
+				plus.webview.currentWebview().close();
+			}
+
+			/**
+			 * 获取对象属性的值
+			 * 主要用于过滤三级联动中，可能出现的最低级的数据不存在的情况，实际开发中需要注意这一点；
+			 * @param {Object} obj 对象
+			 * @param {String} param 属性名
+			 */
+			var _getParam = function(obj, param) {
+				return obj[param] || '';
+			};
+
+			var cityPicker3 = new mui.PopPicker({
+				layer: 3
+			});
+			cityPicker3.setData(cityData3);
+
+			function showCityPickerWindow() {
+				cityPicker3.show(function(items) {
+					document.getElementById("cityPicker").innerText = _getParam(items[0], 'text') + "-" + _getParam(items[1], 'text') + "-" + _getParam(items[2], 'text');
+					vm.userAddress.provinceName = _getParam(items[0], 'text');
+					vm.userAddress.cityName = _getParam(items[1], 'text');
+					vm.userAddress.regionName = _getParam(items[2], 'text');
+				});
+			}
+		</script>
+
+	</body>
+
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<title>地址</title>
+		<link rel="stylesheet" type="text/css" href="../../css/mui.min.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/iconfont.css" />
+		<link rel="stylesheet" type="text/css" href="../../css/mui.picker.min.css" />
+		<style type="text/css">
+			
+			h5 {
+				color: black
+			}
+			
+			.name {
+				float: left;
+			}
+			
+			.number {
+				float: right;
+			}
+			
+			.address {
+				padding-top: 2px;
+				clear: both;
+			}
+			
+			.fontsize5 {
+				font-size: 30px;
+				color: #69B452;
+			}
+			.mui-card{
+				margin:0 auto;
+			}
+			.mui-card-content-inner{
+				
+			}
+			.leftmenu{
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="rrapp" class="mui-content">
+			<div id="userAddressList">
+				<ul class="mui-table-view">
+					<template v-for="item in list">
+						<li class="mui-table-view-cell">
+							<div class="mui-slider-right mui-disabled">
+								<a class="leftmenu mui-btn mui-btn-red" @tap="vm.setDefault(item.addressId)">设为默认</a>
+								<a class="leftmenu mui-btn mui-btn-yellow" @tap="vm.delete(item.addressId)">删除</a>
+							</div>
+							<div class="mui-slider-handle">
+								<div class="mui-card-content">
+										<div class="mui-media-body" style="height:12vw">
+											<span class="mui-pull-left">{{item.name}}</span><span class="mui-pull-right">电话： {{item.mobile}}</span>
+											<span v-if="item.defaultAddr==1" class="fontsize5 iconfont icon-moren"></span>
+											<p class="mui-pull-left">{{item.provinceName}}-{{item.cityName}}-{{item.regionName}}-{{item.address}}</p>
+										</div>
+								</div>
+							</div>
+						</li>
+					</template>
+				</ul>
+			</div>
+		</div>
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../js/mui.min.js" charset="UTF-8"></script>
+		<script src="../../libs/vue.min.js" charset="UTF-8"></script>
+		<script src="../../js/city.data-3.js" charset="UTF-8"></script>
+		<script src="../../js/mui.picker.min.js" charset="UTF-8"></script>
+		<script src="../../js/jquery.min.js" charset="UTF-8"></script>
+		<script src="../../js/modules/app/useraddress.js" charset="UTF-8"></script>
+		<script type="text/javascript" charset="UTF-8">
+			mui.init({
+				swipeBack: false, //把右滑关闭功能 关闭  
+				pullRefresh: {
+					container: '#rrapp',
+					down: {
+						style: 'circle',
+						offset: '0px',
+						auto: true,
+						callback: pulldownRefresh
+					}
+				}
+			});
+
+			function pulldownRefresh() {
+
+				if(window.plus && plus.networkinfo.getCurrentType() === plus.networkinfo.CONNECTION_NONE) {
+					plus.nativeUI.toast('似乎已断开与互联网的连接', {
+						verticalAlign: 'top'
+					});
+					return;
+				}
+				vm.pulldownRefresh();
+			}
+			mui.plusReady(function() {
+
+			});
+		</script>
+	</body>
+
+</html>

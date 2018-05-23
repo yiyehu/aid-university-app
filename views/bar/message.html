@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>message</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../../css/mui.min.css">
+		<script src="../../js/common.js" charset="UTF-8"></script>
+		<script src="../../libs/vue.min.js"></script>
+		<script src="../../js/mui.min.js"></script>
+		<style type="text/css">
+			.mui-control-content {
+				background-color: white;
+				min-height: 490px;
+			}
+			
+			.mui-control-content .mui-loading {
+				margin-top: 50px;
+			}
+			
+			.mui-card .mui-control-content {
+				padding: 10px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="messageDiv" class="mui-content">
+			<!--顶部消息分类 开始-->
+			<div style="padding: 10px 10px;">
+				<div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-positive">
+					<template v-for="(item,index) in topCategory">
+						<a v-if="index==2" class="mui-control-item mui-active" href="#itemmobile" @tap="messageVue.queryRelevantChatUsers(item.categoryId)">{{item.name}}</a>
+						<a v-if="index!=2" class="mui-control-item" href="#itemmobile" @tap="messageVue.queryRelevantChatUsers(item.categoryId)">{{item.name}}</a>
+					</template>
+				</div>
+			</div>
+			<div id="itemmobile" class="mui-control-content mui-active">
+				<div id="scroll" class="mui-scroll-wrapper ">
+					<div class="mui-scroll">
+						<div class="mui-card">
+							<ul class="mui-table-view">
+								<template v-for="item in users">
+									<a href="javascript:; " :data-guid="item.userId " @tap="open_detail(item) ">
+										<li class="mui-table-view-cell mui-media">
+											<img class="mui-media-object mui-pull-left" v-bind:src="baseURL+item.img">
+											<div class="mui-media-body">
+												{{item.username}}
+												<p class='mui-ellipsis'></p>
+											</div>
+										</li>
+									</a>
+								</template>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="../../js/modules/app/message.js" charset="UTF-8 "></script>
+		<script type="text/javascript " charset="UTF-8 ">
+			var webview_detail = null; //详情页webview
+			mui.init({
+				swipeBack: false, //把右滑关闭功能 关闭  
+				pullRefresh: {
+					container: '#itemmobile',
+					down: {
+						style: 'circle',
+						offset: '0px',
+						auto: true,
+						callback: pulldownRefresh
+					}
+				}
+			});
+			var titleNView = { //详情页原生导航配置
+				backgroundColor: '#f7f7f7', //导航栏背景色
+				titleText: '', //导航栏标题
+				titleColor: '#000000', //文字颜色
+				type: 'transparent', //透明渐变样式
+				autoBackButton: true, //自动绘制返回箭头
+				splitLine: { //底部分割线
+					color: '#cccccc'
+				}
+			}
+
+			function pulldownRefresh() {
+
+				if(window.plus && plus.networkinfo.getCurrentType() === plus.networkinfo.CONNECTION_NONE) {
+					plus.nativeUI.toast('似乎已断开与互联网的连接', {
+						verticalAlign: 'top'
+					});
+					return;
+				}
+				messageVue.pulldownRefresh();
+			}
+
+			mui.plusReady(function() {
+				//预加载详情页
+				webview_detail = mui.preload({
+					url: '../message/detail.html',
+					id: 'message_detail',
+					styles: {
+						"render": "always",
+						"popGesture": "hide",
+						"bounce": "vertical",
+						"bounceBackground": "#efeff4",
+						"titleNView": titleNView
+					}
+				});
+			});
+			/**
+			 * 打开消息详情
+			 * 
+			 * @param {Object} item 当前点击的消息对象
+			 */
+			function open_detail(item) {
+				//触发子窗口变更消息详情
+				mui.fire(webview_detail, 'get_detail', {
+					guid: item.userID,
+					talkToItem: item,
+					currCategoryId: messageVue.currCategoryId
+				});
+
+				//更改详情页原生导航条信息
+				titleNView.titleText = item.username;
+				webview_detail.setStyle({
+					"titleNView": titleNView
+				});
+				setTimeout(function() {
+					webview_detail.show("slide-in-right", 300);
+				}, 150);
+			}
+		</script>
+
+	</body>
+
+</html>
